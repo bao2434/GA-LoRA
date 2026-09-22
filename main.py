@@ -1,6 +1,6 @@
 import torch
 from model import CLIP_Processor, GA_LoRA
-from datasets import OxfordFlowers
+from datasets import EuroSatDataset
 import random
 from torchvision import transforms
 import numpy as np
@@ -24,7 +24,7 @@ def set_seed(seed=42):
 def main():
 
     res_dir = "result/results.json"
-    clip_model_name = "B32"
+    clip_model_name = "B16"
     print("clip model: ", clip_model_name)
 
     train_tranform = transforms.Compose([
@@ -34,8 +34,8 @@ def main():
         transforms.Normalize(mean=(0.48145466, 0.4578275, 0.40821073), std=(0.26862954, 0.26130258, 0.27577711))
     ])
 
-    shot_list = [1, 2, 4, 8]
-    target_encoder_list = ["all"]
+    shot_list = [1, 4, 8, 16]
+    target_encoder_list = ["vision"]
     target_position_list = ['all']
     target_component_list = ['v', 'o']
     rank_list = [1, 8, 16]
@@ -45,7 +45,7 @@ def main():
 
     dataset_list = []
     for shot in shot_list:
-        dataset = OxfordFlowers(transform_train=train_tranform, transform_test=processor.process_image, shot_num=shot)
+        dataset = EuroSatDataset(transform_train=train_tranform, transform_test=processor.process_image, shot_num=shot)
         dataset_list.append(dataset)
 
     try:
