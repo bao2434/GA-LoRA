@@ -10,17 +10,16 @@ class StanfordCars(Dataset):
     def __init__(self,  transform_train, transform_test, shot_num = 16):
 
         self.template = "a photo of"
-        data_root = "/kaggle/input/datasets/icebearthecoldcoder/stanford-cars"
 
         a = cars(
-            root=data_root,
+            root='./data',
             split="train",
             download=False,
             transform=transform_train      # augmented for training
         )
 
         b = cars(
-            root=data_root,
+            root='./data',
             split="test",
             download=False,
             transform=transform_test       # deterministic for test

@@ -79,7 +79,7 @@ class GA_LoRA(nn.Module):
     def __init__(self, processor,
                 model="B16", 
                 target_encoder="all", 
-                target_postion="all", 
+                target_position="all", 
                 target_component = "all", 
                 rank=1, 
                 alpha=2, 
@@ -87,6 +87,24 @@ class GA_LoRA(nn.Module):
                 dropout=0.25,
                 cache_dir="./models"):
         super().__init__()
+
+        if model not in CLIP_MODEL:
+            raise ValueError("invalid model")
+        if target_encoder not in TARGET_ENCODER:
+            raise ValueError("invalid target encoder")
+        if target_position not in INDEX_POSITIONS_TEXT:
+            raise ValueError("invalid target position")
+        if target_component not in TARGET_COMPONENT:
+            raise ValueError("invalid target component")
+        if not isinstance(rank, int) or isinstance(rank, bool) or rank <= 0:
+            raise ValueError("rank must be a positive integer")
+        if not isinstance(alpha, (int, float)) or isinstance(alpha, bool) or alpha <= 0:
+            raise ValueError("alpha must be a positive number")
+        if not isinstance(lambda_val, (int, float)) or isinstance(lambda_val, bool) or not 0 <= lambda_val <= 1:
+            raise ValueError("lambda_val must be between 0 and 1")
+        if not isinstance(dropout, (int, float)) or isinstance(dropout, bool) or not 0 <= dropout < 1:
+            raise ValueError("dropout must be between 0 and 1 (exclusive)")
+        
         self.target_encoder = target_encoder
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.processor = processor
@@ -97,11 +115,11 @@ class GA_LoRA(nn.Module):
         target_modules = []
         for encoder in TARGET_ENCODER[target_encoder]:
             if (encoder == "vision_model"):
-                for position in INDEX_POSITIONS_VISION[model][target_postion]:
+                for position in INDEX_POSITIONS_VISION[model][target_position]:
                     for component in TARGET_COMPONENT[target_component]:
                         target_modules.append(f"{encoder}.encoder.layers.{position}.self_attn.{component}")
             elif (encoder == "text_model"):
-                for position in INDEX_POSITIONS_TEXT[target_postion]:
+                for position in INDEX_POSITIONS_TEXT[target_position]:
                     for component in TARGET_COMPONENT[target_component]:
                         target_modules.append(f"{encoder}.encoder.layers.{position}.self_attn.{component}")
         config = LoraConfig(
